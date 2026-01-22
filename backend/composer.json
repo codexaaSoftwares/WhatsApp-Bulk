@@ -1,8 +1,8 @@
 {
-    "name": "photo-studio/backend",
+    "name": "whatsapp-bulk/backend",
     "type": "project",
-    "description": "Photo Studio Management Backend API",
-    "keywords": ["laravel", "api", "rest"],
+    "description": "WhatsApp Bulk Message Sender Backend API",
+    "keywords": ["laravel", "api", "rest", "whatsapp"],
     "license": "MIT",
     "require": {
         "php": "^8.0.2",

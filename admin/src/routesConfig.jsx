@@ -3,6 +3,16 @@ const routesConfig = [
   { path: '/', exact: true, name: 'Home' },
   { path: '/dashboard', name: 'Dashboard' },
   
+  // WhatsApp Management Routes
+  { path: '/business-profile', name: 'Business Profile' },
+  { path: '/whatsapp-numbers', name: 'WhatsApp Numbers' },
+  { path: '/contacts', name: 'Contacts' },
+  { path: '/templates', name: 'Templates' },
+  { path: '/campaigns', name: 'Campaigns' },
+  { path: '/campaigns/:id', name: 'Campaign Details' },
+  { path: '/message-logs', name: 'Message Logs' },
+  { path: '/compose', name: 'Compose Message' },
+  
   // User Management Routes
   { path: '/users', name: 'Users' },
   { path: '/users/create', name: 'Create User' },
@@ -14,10 +24,6 @@ const routesConfig = [
   { path: '/roles/create', name: 'Create Role' },
   { path: '/roles/edit/:id', name: 'Edit Role' },
   { path: '/roles/:id', name: 'Role Details' },
-  
-  // Branch Management Routes
-  { path: '/branches', name: 'Branches' },
-  { path: '/branches/:id', name: 'Branch Details' },
   
   // Account Routes
   { path: '/profile', name: 'Profile' },

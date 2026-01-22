@@ -5,6 +5,14 @@ import { CSpinner } from '@coreui/react'
 // Import components
 const Dashboard = React.lazy(() => import('../../views/dashboard/Dashboard'))
 
+// WhatsApp Management Components
+const BusinessProfile = React.lazy(() => import('../../views/businessProfile/BusinessProfile'))
+const WhatsAppNumbers = React.lazy(() => import('../../views/whatsappNumbers/WhatsAppNumbers'))
+const Contacts = React.lazy(() => import('../../views/contacts/Contacts'))
+const Templates = React.lazy(() => import('../../views/templates/Templates'))
+const Campaigns = React.lazy(() => import('../../views/campaigns/Campaigns'))
+const MessageLogs = React.lazy(() => import('../../views/messageLogs/MessageLogs'))
+
 // User Management Components
 const UsersList = React.lazy(() => import('../../views/users/UsersList'))
 const Profile = React.lazy(() => import('../../views/users/Profile'))
@@ -12,10 +20,6 @@ const RolesList = React.lazy(() => import('../../views/roles/RolesList'))
 
 // Settings Components
 const Settings = React.lazy(() => import('../../views/settings/Settings'))
-
-// Branch Management Components
-const BranchesList = React.lazy(() => import('../../views/branches/BranchesList'))
-
 
 import PermissionRoute from './PermissionRoute'
 import { PERMISSIONS } from '../../constants/permissions'
@@ -34,6 +38,16 @@ const AppContent = () => {
               </PermissionRoute>
             }
           />
+          
+          {/* WhatsApp Management Routes - No permissions for now */}
+          <Route path="/business-profile" element={<BusinessProfile />} />
+          <Route path="/whatsapp-numbers" element={<WhatsAppNumbers />} />
+          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/templates" element={<Templates />} />
+          <Route path="/campaigns" element={<Campaigns />} />
+          <Route path="/campaigns/:id" element={<Campaigns />} />
+          <Route path="/message-logs" element={<MessageLogs />} />
+          <Route path="/compose" element={<Campaigns />} />
           
           {/* User Management Routes */}
           <Route
@@ -63,21 +77,6 @@ const AppContent = () => {
               </PermissionRoute>
             }
           />
-          
-          {/* Branch Management Routes */}
-          <Route
-            path="/branches"
-            element={
-              <PermissionRoute requiredPermission={PERMISSIONS.BRANCH_READ} showAccessDenied>
-                <BranchesList />
-              </PermissionRoute>
-            }
-          />
-          <Route path="/branches/create" element={<Navigate to="/branches" replace />} />
-          <Route path="/branches/edit/:id" element={<Navigate to="/branches" replace />} />
-          
-          {/* Report Routes */}
-          {/* Report routes will be added here as needed */}
           
           {/* Default redirect */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />

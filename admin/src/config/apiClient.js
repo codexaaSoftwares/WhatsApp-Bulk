@@ -53,6 +53,25 @@ apiClient.interceptors.response.use(
                             (error.config?.method === 'post' || error.config?.method === 'put') &&
                             (error.response?.status === 404 || !error.response)
       
+      // Network error - backend server might be down
+      if (!error.response) {
+        const fullUrl = error.config?.baseURL + error.config?.url
+        console.error('[API Network Error]', {
+          message: 'Cannot connect to backend server',
+          url: fullUrl,
+          baseURL: error.config?.baseURL,
+          endpoint: error.config?.url,
+          error: error.message,
+          troubleshooting: [
+            '1. Make sure backend server is running: cd backend && php artisan serve',
+            '2. Check if backend is running on the correct port (default: 8000)',
+            '3. Verify VITE_API_BASE_URL in .env.local matches backend URL',
+            '4. Check browser console for CORS errors',
+            '5. Try accessing backend directly: ' + (error.config?.baseURL || 'http://localhost:8000') + '/api/auth/login',
+          ],
+        })
+      }
+      
       // Don't log 404 errors or network errors for settings lookup (expected behavior)
       if (!isSettingsLookup && !isSettingsSave) {
         // Only log if we have a response or it's a real error

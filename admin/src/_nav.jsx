@@ -4,8 +4,13 @@ import {
   cilSpeedometer,
   cilPeople,
   cilCog,
-  cilBuilding,
   cilLockLocked,
+  cilBuilding,
+  cilPhone,
+  cilUser,
+  cilFile,
+  cilBullhorn,
+  cilEnvelopeOpen,
 } from '@coreui/icons'
 import { CNavItem, CNavTitle } from '@coreui/react'
 import { PERMISSIONS } from './constants/permissions'
@@ -24,14 +29,43 @@ const _nav = [
   },
   {
     component: CNavTitle,
-    name: 'Masters',
+    name: 'WhatsApp Management',
   },
   {
     component: CNavItem,
-    name: 'Branches',
-    to: '/branches',
+    name: 'Business Profile',
+    to: '/business-profile',
     icon: <CIcon icon={cilBuilding} customClassName="nav-icon" />,
-    permission: PERMISSIONS.BRANCH_READ,
+  },
+  {
+    component: CNavItem,
+    name: 'WhatsApp Numbers',
+    to: '/whatsapp-numbers',
+    icon: <CIcon icon={cilPhone} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Contacts',
+    to: '/contacts',
+    icon: <CIcon icon={cilUser} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Templates',
+    to: '/templates',
+    icon: <CIcon icon={cilFile} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Campaigns',
+    to: '/campaigns',
+    icon: <CIcon icon={cilBullhorn} customClassName="nav-icon" />,
+  },
+  {
+    component: CNavItem,
+    name: 'Message Logs',
+    to: '/message-logs',
+    icon: <CIcon icon={cilEnvelopeOpen} customClassName="nav-icon" />,
   },
   {
     component: CNavTitle,

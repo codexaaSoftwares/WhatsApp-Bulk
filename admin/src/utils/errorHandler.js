@@ -8,12 +8,19 @@ import { API_ERRORS } from '../constants/api'
 export const handleApiError = (error) => {
   // Network error - no response from server
   if (!error.response) {
+    const baseURL = error.config?.baseURL || 'http://localhost:8000'
     return {
       success: false,
       data: null,
-      message: API_ERRORS.NETWORK_ERROR,
+      message: `Cannot connect to backend server at ${baseURL}. Please make sure the backend server is running.`,
       error: 'network',
       status: null,
+      troubleshooting: [
+        '1. Start the backend server: cd backend && php artisan serve',
+        '2. Check if backend is running on the correct port (default: 8000)',
+        '3. Verify VITE_API_BASE_URL in .env.local matches backend URL',
+        '4. Check browser console for detailed error messages',
+      ],
     }
   }
 

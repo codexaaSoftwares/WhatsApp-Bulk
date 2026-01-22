@@ -1,6 +1,6 @@
-# Hotel Management - Admin Panel
+# WhatsApp Bulk Message Sender - Admin Panel
 
-React admin dashboard for Hotel Management Web Application.
+React admin dashboard for WhatsApp Bulk Message Sender Web Application.
 
 ## 🚀 Quick Start
 

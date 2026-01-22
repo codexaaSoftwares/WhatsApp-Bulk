@@ -107,26 +107,6 @@ export const API_ENDPOINTS = {
     DELETE_ALL: '/notifications/delete-all',
     PREFERENCES: '/notifications/preferences',
   },
-
-  // Branch Management
-  BRANCHES: {
-    BASE: '/branches',
-    LIST: '/branches',
-    CREATE: '/branches',
-    GET_BY_ID: (id) => `/branches/${id}`,
-    UPDATE: (id) => `/branches/${id}`,
-    DELETE: (id) => `/branches/${id}`,
-  },
-
-  // Reports
-  REPORTS: {
-    BASE: '/reports',
-    SALES: '/reports/sales',
-    LEDGER: '/reports/ledger',
-    BRANCH: '/reports/branch',
-    STAFF: '/reports/staff',
-    EXPORT: (type) => `/reports/${type}/export`,
-  },
 }
 
 // HTTP Methods
@@ -154,7 +134,7 @@ export const API_STATUS = {
 
 // API Error Messages
 export const API_ERRORS = {
-  NETWORK_ERROR: 'Network error. Please check your connection.',
+  NETWORK_ERROR: 'Cannot connect to backend server. Please make sure the backend server is running on http://localhost:8000',
   UNAUTHORIZED: 'You are not authorized to access this resource.',
   FORBIDDEN: 'Access denied. You don\'t have permission to perform this action.',
   NOT_FOUND: 'The requested resource was not found.',
