@@ -1,6 +1,6 @@
-# Hotel Management Web Application
+# WhatsApp Bulk Message Sender
 
-A comprehensive web application for managing hotel restaurant operations, room bookings, billing, and financial management.
+A comprehensive web application for sending bulk WhatsApp messages to multiple customers individually using Meta's Official WhatsApp Cloud API.
 
 ## 🚀 Quick Start
 
@@ -40,15 +40,25 @@ API will be available at [http://localhost:8000/api](http://localhost:8000/api)
 - Laravel 9
 - MySQL
 - Laravel Sanctum (Authentication)
+- Laravel Queue (Background Jobs)
+- Guzzle HTTP (WhatsApp API Integration)
 
 ## 📁 Project Structure
 
 ```
-Hotel-App/
+WhatsApp-Bulk/
 ├── admin/          # React frontend (admin panel)
 ├── backend/        # Laravel API backend
+├── Scope/          # Project scope and BRD
 └── structure & development guideline/  # Documentation
 ```
+
+## 📋 Project Documentation
+
+- **[DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md)** - Complete development plan from cleanup to deployment
+- **[QUICK_START_CHECKLIST.md](./QUICK_START_CHECKLIST.md)** - Step-by-step checklist to get started
+- **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)** - Database schema and relationships
+- **[Scope/📘 BRD _ Project Scope.md](./Scope/📘%20BRD%20_%20Project%20Scope.md)** - Business Requirements Document
 
 ## 🔧 Environment Setup
 
@@ -64,5 +74,33 @@ Hotel-App/
 
 ---
 
+## 🎯 Project Status
+
+**Current Phase**: Planning & Cleanup  
 **Status**: In Development  
 **Version**: 1.0.0
+
+## 📚 Key Features
+
+- ✅ Connect WhatsApp Business number via Cloud API
+- ✅ Manage customer contacts (import CSV/Excel)
+- ✅ Create and manage WhatsApp message templates
+- ✅ Send bulk messages individually to multiple contacts
+- ✅ Track delivery status (sent, delivered, read, failed)
+- ✅ Campaign management and statistics
+- ✅ Complete message logs for audit
+- ✅ Webhook integration for real-time status updates
+- ✅ Queue-based background processing
+- ✅ Rate limit handling
+
+## ⚠️ Important Notes
+
+- Uses **Meta's Official WhatsApp Cloud API** (no browser automation)
+- Messages are sent **individually**, not in groups
+- Respects WhatsApp rate limits automatically
+- Full audit trail of all messages
+- Production-ready and Meta-compliant
+
+---
+
+**See [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md) for detailed development roadmap.**
