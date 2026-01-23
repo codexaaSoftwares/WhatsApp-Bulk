@@ -23,8 +23,23 @@ cp .env.example .env
 php artisan key:generate
 php artisan migrate
 php artisan db:seed
+```
+
+**Start Development (2 terminals needed):**
+
+**Terminal 1:**
+```bash
 php artisan serve
 ```
+
+**Terminal 2:**
+```bash
+php artisan schedule:work
+```
+
+**OR use helper script:**
+- Windows: `dev-start.bat`
+- Linux/Mac: `chmod +x dev-start.sh && ./dev-start.sh`
 
 API will be available at [http://localhost:8000/api](http://localhost:8000/api)
 
@@ -58,6 +73,7 @@ WhatsApp-Bulk/
 - **[DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md)** - Complete development plan from cleanup to deployment
 - **[QUICK_START_CHECKLIST.md](./QUICK_START_CHECKLIST.md)** - Step-by-step checklist to get started
 - **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)** - Database schema and relationships
+- **[HOSTINGER_DEPLOYMENT.md](./HOSTINGER_DEPLOYMENT.md)** - Complete guide for deploying on Hostinger shared hosting
 - **[Scope/📘 BRD _ Project Scope.md](./Scope/📘%20BRD%20_%20Project%20Scope.md)** - Business Requirements Document
 
 ## 🔧 Environment Setup
@@ -69,16 +85,30 @@ WhatsApp-Bulk/
 
 ## 📝 Development
 
-- Frontend: `cd admin && npm run dev`
-- Backend: `cd backend && php artisan serve`
+**Terminal 1 - Frontend:**
+```bash
+cd admin && npm run dev
+```
+
+**Terminal 2 - Backend API:**
+```bash
+cd backend && php artisan serve
+```
+
+**Terminal 3 - Queue Scheduler (IMPORTANT!):**
+```bash
+cd backend && php artisan schedule:work
+```
+
+**Note:** We use `schedule:work` in development (same as production cron). This ensures dev and production work identically! See [DEVELOPMENT_SETUP.md](./backend/DEVELOPMENT_SETUP.md) for details.
 
 ---
 
 ## 🎯 Project Status
 
-**Current Phase**: Planning & Cleanup  
-**Status**: In Development  
-**Version**: 1.0.0
+**Current Phase**: API Integration & Testing  
+**Status**: Ready for Testing  
+**Version**: 1.0.0-beta
 
 ## 📚 Key Features
 
@@ -104,3 +134,27 @@ WhatsApp-Bulk/
 ---
 
 **See [DEVELOPMENT_PLAN.md](./DEVELOPMENT_PLAN.md) for detailed development roadmap.**
+
+## 🧪 Testing Checklist
+
+Before production deployment, test:
+
+1. ✅ **WhatsApp Connection**
+   - Add WhatsApp number with access token
+   - Test connection via "Test" button
+
+2. ✅ **Template Management**
+   - Create template
+   - Approve template
+
+3. ✅ **Campaign Creation**
+   - Create campaign with 2-3 test contacts
+   - Start campaign
+   - Monitor queue jobs
+
+4. ⏭️ **Message Sending**
+   - Verify messages are sent
+   - Check webhook events
+   - Verify status updates
+
+**See [QUICK_START_CHECKLIST.md](./QUICK_START_CHECKLIST.md) for step-by-step testing guide.**

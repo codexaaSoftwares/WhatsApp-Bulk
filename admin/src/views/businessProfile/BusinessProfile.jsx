@@ -1,22 +1,43 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBuilding, faSave, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { useToast } from '../../components'
-
-// Mock data
-const mockBusinessProfile = {
-  id: 1,
-  business_name: 'My Business',
-  whatsapp_business_id: '123456789',
-  app_id: '987654321',
-  phone_number_id: '5551234567',
-}
+import businessProfileService from '../../services/businessProfileService'
 
 const BusinessProfile = () => {
   const { success: showSuccess, error: showError } = useToast()
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState(mockBusinessProfile)
+  const [fetching, setFetching] = useState(true)
+  const [formData, setFormData] = useState({
+    business_name: '',
+    whatsapp_business_id: '',
+    app_id: '',
+    phone_number_id: '',
+  })
+
+  useEffect(() => {
+    fetchProfile()
+  }, [])
+
+  const fetchProfile = async () => {
+    try {
+      setFetching(true)
+      const response = await businessProfileService.getProfile()
+      if (response.success && response.data) {
+        setFormData({
+          business_name: response.data.business_name || '',
+          whatsapp_business_id: response.data.whatsapp_business_id || '',
+          app_id: response.data.app_id || '',
+          phone_number_id: response.data.phone_number_id || '',
+        })
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to fetch business profile')
+    } finally {
+      setFetching(false)
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -30,11 +51,17 @@ const BusinessProfile = () => {
     e.preventDefault()
     setLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      showSuccess('Business profile updated successfully')
+    try {
+      const response = await businessProfileService.updateProfile(formData)
+      if (response.success) {
+        showSuccess('Business profile updated successfully')
+        fetchProfile()
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to update business profile')
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   return (
@@ -57,12 +84,19 @@ const BusinessProfile = () => {
               <h5 className="mb-0">Business Information</h5>
             </Card.Header>
             <Card.Body>
-              <Alert variant="info" className="mb-4">
-                <strong>Note:</strong> This information is required to connect with WhatsApp Cloud API. 
-                You can find these details in your Meta Business Manager.
-              </Alert>
+              {fetching ? (
+                <div className="text-center py-5">
+                  <FontAwesomeIcon icon={faSpinner} spin className="text-primary mb-3" size="3x" />
+                  <p className="text-muted">Loading business profile...</p>
+                </div>
+              ) : (
+                <>
+                  <Alert variant="info" className="mb-4">
+                    <strong>Note:</strong> This information is required to connect with WhatsApp Cloud API. 
+                    You can find these details in your Meta Business Manager.
+                  </Alert>
 
-              <Form onSubmit={handleSubmit}>
+                  <Form onSubmit={handleSubmit}>
                 <Row>
                   <Col md={12} className="mb-3">
                     <Form.Group>
@@ -147,6 +181,8 @@ const BusinessProfile = () => {
                   </Button>
                 </div>
               </Form>
+                </>
+              )}
             </Card.Body>
           </Card>
         </Col>

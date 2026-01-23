@@ -107,6 +107,67 @@ export const API_ENDPOINTS = {
     DELETE_ALL: '/notifications/delete-all',
     PREFERENCES: '/notifications/preferences',
   },
+
+  // Business Profile
+  BUSINESS_PROFILE: {
+    BASE: '/business-profile',
+    GET: '/business-profile',
+    UPDATE: '/business-profile',
+  },
+
+  // WhatsApp Numbers
+  WHATSAPP_NUMBERS: {
+    BASE: '/whatsapp-numbers',
+    LIST: '/whatsapp-numbers',
+    CREATE: '/whatsapp-numbers',
+    GET_BY_ID: (id) => `/whatsapp-numbers/${id}`,
+    UPDATE: (id) => `/whatsapp-numbers/${id}`,
+    DELETE: (id) => `/whatsapp-numbers/${id}`,
+    TEST_CONNECTION: (id) => `/whatsapp-numbers/${id}/test-connection`,
+    STATUS: (id) => `/whatsapp-numbers/${id}/status`,
+  },
+
+  // Contacts
+  CONTACTS: {
+    BASE: '/contacts',
+    LIST: '/contacts',
+    CREATE: '/contacts',
+    GET_BY_ID: (id) => `/contacts/${id}`,
+    UPDATE: (id) => `/contacts/${id}`,
+    DELETE: (id) => `/contacts/${id}`,
+  },
+
+  // Templates
+  TEMPLATES: {
+    BASE: '/templates',
+    LIST: '/templates',
+    CREATE: '/templates',
+    GET_BY_ID: (id) => `/templates/${id}`,
+    UPDATE: (id) => `/templates/${id}`,
+    DELETE: (id) => `/templates/${id}`,
+    PREVIEW: (id) => `/templates/${id}/preview`,
+    APPROVE: (id) => `/templates/${id}/approve`,
+    REJECT: (id) => `/templates/${id}/reject`,
+    SUBMIT_FOR_APPROVAL: (id) => `/templates/${id}/submit-for-approval`,
+  },
+
+  // Campaigns
+  CAMPAIGNS: {
+    BASE: '/campaigns',
+    LIST: '/campaigns',
+    CREATE: '/campaigns',
+    GET_BY_ID: (id) => `/campaigns/${id}`,
+    STATS: (id) => `/campaigns/${id}/stats`,
+    START: (id) => `/campaigns/${id}/start`,
+    RETRY_FAILED: (id) => `/campaigns/${id}/retry-failed`,
+  },
+
+  // Message Logs
+  MESSAGE_LOGS: {
+    BASE: '/message-logs',
+    LIST: '/message-logs',
+    GET_BY_ID: (id) => `/message-logs/${id}`,
+  },
 }
 
 // HTTP Methods

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Container, Row, Col, Card, Table, Button, Badge, Modal, Form, Alert } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -9,77 +9,111 @@ import {
   faCheckCircle,
   faTimesCircle,
   faSpinner,
+  faPlug,
 } from '@fortawesome/free-solid-svg-icons'
 import { useToast } from '../../components'
-
-// Mock data
-const mockNumbers = [
-  {
-    id: 1,
-    phone_number_id: '1234567890',
-    phone_number: '+1234567890',
-    display_name: 'Main Business Number',
-    is_active: true,
-    verified_at: '2024-01-15T10:00:00Z',
-  },
-  {
-    id: 2,
-    phone_number_id: '0987654321',
-    phone_number: '+0987654321',
-    display_name: 'Support Number',
-    is_active: false,
-    verified_at: null,
-  },
-]
+import whatsappNumberService from '../../services/whatsappNumberService'
 
 const WhatsAppNumbers = () => {
   const { success: showSuccess, error: showError } = useToast()
-  const [numbers, setNumbers] = useState(mockNumbers)
-  const [showModal, setShowModal] = useState(false)
+  const [numbers, setNumbers] = useState([])
   const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [testingConnection, setTestingConnection] = useState(null)
   const [formData, setFormData] = useState({
     phone_number_id: '',
     phone_number: '',
     display_name: '',
     access_token: '',
+    is_active: true,
   })
 
+  // Fetch numbers on component mount
+  useEffect(() => {
+    fetchNumbers()
+  }, [])
+
+  const fetchNumbers = async () => {
+    try {
+      setFetching(true)
+      const response = await whatsappNumberService.getNumbers()
+      if (response.success) {
+        setNumbers(response.data.data || response.data || [])
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to fetch WhatsApp numbers')
+    } finally {
+      setFetching(false)
+    }
+  }
+
   const handleChange = (e) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    const { name, value, type, checked } = e.target
+    setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }))
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      const newNumber = {
-        id: numbers.length + 1,
-        ...formData,
-        is_active: true,
-        verified_at: new Date().toISOString(),
+    try {
+      const response = await whatsappNumberService.createNumber(formData)
+      if (response.success) {
+        showSuccess('WhatsApp number added successfully')
+        setShowModal(false)
+        setFormData({ phone_number_id: '', phone_number: '', display_name: '', access_token: '', is_active: true })
+        fetchNumbers()
       }
-      setNumbers([...numbers, newNumber])
-      setShowModal(false)
-      setFormData({ phone_number_id: '', phone_number: '', display_name: '', access_token: '' })
-      showSuccess('WhatsApp number added successfully')
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to add WhatsApp number')
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
-  const handleToggleStatus = (id) => {
-    setNumbers(numbers.map(num => 
-      num.id === id ? { ...num, is_active: !num.is_active } : num
-    ))
-    showSuccess('Status updated successfully')
+  const handleToggleStatus = async (id, currentStatus) => {
+    try {
+      const response = await whatsappNumberService.updateNumber(id, {
+        is_active: !currentStatus
+      })
+      if (response.success) {
+        showSuccess('Status updated successfully')
+        fetchNumbers()
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to update status')
+    }
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this number?')) {
-      setNumbers(numbers.filter(num => num.id !== id))
-      showSuccess('Number deleted successfully')
+      try {
+        const response = await whatsappNumberService.deleteNumber(id)
+        if (response.success) {
+          showSuccess('Number deleted successfully')
+          fetchNumbers()
+        }
+      } catch (error) {
+        showError(error.response?.data?.message || 'Failed to delete number')
+      }
+    }
+  }
+
+  const handleTestConnection = async (id) => {
+    setTestingConnection(id)
+    try {
+      const response = await whatsappNumberService.testConnection(id)
+      if (response.success) {
+        showSuccess('Connection test successful! WhatsApp number is working.')
+        fetchNumbers() // Refresh to update verified_at
+      } else {
+        showError(response.message || 'Connection test failed')
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Connection test failed')
+    } finally {
+      setTestingConnection(null)
     }
   }
 
@@ -107,7 +141,12 @@ const WhatsAppNumbers = () => {
               <h5 className="mb-0">Connected Numbers</h5>
             </Card.Header>
             <Card.Body>
-              {numbers.length === 0 ? (
+              {fetching ? (
+                <div className="text-center py-5">
+                  <FontAwesomeIcon icon={faSpinner} spin className="text-primary mb-3" size="3x" />
+                  <p className="text-muted">Loading WhatsApp numbers...</p>
+                </div>
+              ) : numbers.length === 0 ? (
                 <div className="text-center py-5">
                   <FontAwesomeIcon icon={faPhone} className="text-muted mb-3" size="3x" />
                   <p className="text-muted">No WhatsApp numbers configured yet</p>
@@ -159,8 +198,24 @@ const WhatsAppNumbers = () => {
                           <div className="d-flex gap-2">
                             <Button
                               size="sm"
+                              variant="outline-success"
+                              onClick={() => handleTestConnection(number.id)}
+                              disabled={testingConnection === number.id}
+                              title="Test WhatsApp Connection"
+                            >
+                              {testingConnection === number.id ? (
+                                <FontAwesomeIcon icon={faSpinner} spin />
+                              ) : (
+                                <>
+                                  <FontAwesomeIcon icon={faPlug} className="me-1" />
+                                  Test
+                                </>
+                              )}
+                            </Button>
+                            <Button
+                              size="sm"
                               variant="outline-primary"
-                              onClick={() => handleToggleStatus(number.id)}
+                              onClick={() => handleToggleStatus(number.id, number.is_active)}
                             >
                               {number.is_active ? 'Deactivate' : 'Activate'}
                             </Button>

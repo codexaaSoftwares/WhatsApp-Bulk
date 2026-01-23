@@ -7,6 +7,12 @@ use App\Http\Controllers\API\RoleController;
 use App\Http\Controllers\API\PermissionController;
 use App\Http\Controllers\API\SettingController;
 use App\Http\Controllers\API\DashboardController;
+use App\Http\Controllers\API\CampaignController;
+use App\Http\Controllers\API\TemplateController;
+use App\Http\Controllers\API\WebhookController;
+use App\Http\Controllers\API\BusinessProfileController;
+use App\Http\Controllers\API\WhatsAppNumberController;
+use App\Http\Controllers\API\ContactController;
 
 /*
 |--------------------------------------------------------------------------
@@ -23,6 +29,10 @@ use App\Http\Controllers\API\DashboardController;
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/forgot-password', [AuthController::class, 'forgotPassword']);
 Route::post('/auth/reset-password', [AuthController::class, 'resetPassword']);
+
+// Webhook routes (public, with verification)
+Route::get('/webhooks/whatsapp', [WebhookController::class, 'verify']);
+Route::post('/webhooks/whatsapp', [WebhookController::class, 'handle']);
 
 // Protected routes
 Route::middleware('auth:sanctum')->group(function () {
@@ -60,6 +70,45 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Dashboard
     Route::get('/dashboard/summary', [DashboardController::class, 'summary'])->middleware('permission:view_dashboard');
+
+    // Business Profile
+    Route::get('/business-profile', [BusinessProfileController::class, 'index']);
+    Route::put('/business-profile', [BusinessProfileController::class, 'update']);
+
+    // WhatsApp Numbers
+    Route::get('/whatsapp-numbers', [WhatsAppNumberController::class, 'index']);
+    Route::post('/whatsapp-numbers', [WhatsAppNumberController::class, 'store']);
+    Route::get('/whatsapp-numbers/{id}', [WhatsAppNumberController::class, 'show']);
+    Route::put('/whatsapp-numbers/{id}', [WhatsAppNumberController::class, 'update']);
+    Route::delete('/whatsapp-numbers/{id}', [WhatsAppNumberController::class, 'destroy']);
+    Route::post('/whatsapp-numbers/{id}/test-connection', [WhatsAppNumberController::class, 'testConnection']);
+    Route::get('/whatsapp-numbers/{id}/status', [WhatsAppNumberController::class, 'status']);
+
+    // Contacts
+    Route::get('/contacts', [ContactController::class, 'index']);
+    Route::post('/contacts', [ContactController::class, 'store']);
+    Route::get('/contacts/{id}', [ContactController::class, 'show']);
+    Route::put('/contacts/{id}', [ContactController::class, 'update']);
+    Route::delete('/contacts/{id}', [ContactController::class, 'destroy']);
+
+    // Campaigns
+    Route::get('/campaigns', [CampaignController::class, 'index']);
+    Route::post('/campaigns', [CampaignController::class, 'store']);
+    Route::get('/campaigns/{id}', [CampaignController::class, 'show']);
+    Route::get('/campaigns/{id}/stats', [CampaignController::class, 'stats']);
+    Route::post('/campaigns/{id}/start', [CampaignController::class, 'start']);
+    Route::post('/campaigns/{id}/retry-failed', [CampaignController::class, 'retryFailed']);
+
+    // Templates
+    Route::get('/templates', [TemplateController::class, 'index']);
+    Route::post('/templates', [TemplateController::class, 'store']);
+    Route::get('/templates/{id}', [TemplateController::class, 'show']);
+    Route::put('/templates/{id}', [TemplateController::class, 'update']);
+    Route::delete('/templates/{id}', [TemplateController::class, 'destroy']);
+    Route::get('/templates/{id}/preview', [TemplateController::class, 'preview']);
+    Route::post('/templates/{id}/approve', [TemplateController::class, 'approve']);
+    Route::post('/templates/{id}/reject', [TemplateController::class, 'reject']);
+    Route::post('/templates/{id}/submit-for-approval', [TemplateController::class, 'submitForApproval']);
 
     // Reports
     // Report routes will be added here as needed

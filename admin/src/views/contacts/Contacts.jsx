@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Container, Row, Col, Card, Table, Button, Badge, Modal, Form, InputGroup } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -13,41 +13,12 @@ import {
   faSpinner,
 } from '@fortawesome/free-solid-svg-icons'
 import { useToast } from '../../components'
-
-// Mock data
-const mockContacts = [
-  {
-    id: 1,
-    name: 'John Doe',
-    mobile_number: '+1234567890',
-    email: 'john@example.com',
-    notes: 'VIP Customer',
-    is_active: true,
-    created_at: '2024-01-15T10:00:00Z',
-  },
-  {
-    id: 2,
-    name: 'Jane Smith',
-    mobile_number: '+0987654321',
-    email: 'jane@example.com',
-    notes: null,
-    is_active: true,
-    created_at: '2024-01-14T10:00:00Z',
-  },
-  {
-    id: 3,
-    name: 'Bob Johnson',
-    mobile_number: '+1122334455',
-    email: null,
-    notes: 'Regular customer',
-    is_active: false,
-    created_at: '2024-01-13T10:00:00Z',
-  },
-]
+import contactService from '../../services/contactService'
 
 const Contacts = () => {
   const { success: showSuccess, error: showError } = useToast()
-  const [contacts, setContacts] = useState(mockContacts)
+  const [contacts, setContacts] = useState([])
+  const [fetching, setFetching] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
@@ -56,7 +27,26 @@ const Contacts = () => {
     mobile_number: '',
     email: '',
     notes: '',
+    is_active: true,
   })
+
+  useEffect(() => {
+    fetchContacts()
+  }, [])
+
+  const fetchContacts = async () => {
+    try {
+      setFetching(true)
+      const response = await contactService.getContacts({ is_active: true })
+      if (response.success) {
+        setContacts(response.data.data || response.data || [])
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to fetch contacts')
+    } finally {
+      setFetching(false)
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -67,33 +57,46 @@ const Contacts = () => {
     e.preventDefault()
     setLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      const newContact = {
-        id: contacts.length + 1,
-        ...formData,
-        is_active: true,
-        created_at: new Date().toISOString(),
+    try {
+      const response = await contactService.createContact(formData)
+      if (response.success) {
+        showSuccess('Contact added successfully')
+        setShowModal(false)
+        setFormData({ name: '', mobile_number: '', email: '', notes: '', is_active: true })
+        fetchContacts()
       }
-      setContacts([...contacts, newContact])
-      setShowModal(false)
-      setFormData({ name: '', mobile_number: '', email: '', notes: '' })
-      showSuccess('Contact added successfully')
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to add contact')
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
-  const handleToggleStatus = (id) => {
-    setContacts(contacts.map(contact => 
-      contact.id === id ? { ...contact, is_active: !contact.is_active } : contact
-    ))
-    showSuccess('Status updated successfully')
+  const handleToggleStatus = async (id, currentStatus) => {
+    try {
+      const response = await contactService.updateContact(id, {
+        is_active: !currentStatus
+      })
+      if (response.success) {
+        showSuccess('Status updated successfully')
+        fetchContacts()
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to update status')
+    }
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this contact?')) {
-      setContacts(contacts.filter(contact => contact.id !== id))
-      showSuccess('Contact deleted successfully')
+      try {
+        const response = await contactService.deleteContact(id)
+        if (response.success) {
+          showSuccess('Contact deleted successfully')
+          fetchContacts()
+        }
+      } catch (error) {
+        showError(error.response?.data?.message || 'Failed to delete contact')
+      }
     }
   }
 
@@ -150,7 +153,12 @@ const Contacts = () => {
               </Row>
             </Card.Header>
             <Card.Body>
-              {filteredContacts.length === 0 ? (
+              {fetching ? (
+                <div className="text-center py-5">
+                  <FontAwesomeIcon icon={faSpinner} spin className="text-primary mb-3" size="3x" />
+                  <p className="text-muted">Loading contacts...</p>
+                </div>
+              ) : filteredContacts.length === 0 ? (
                 <div className="text-center py-5">
                   <FontAwesomeIcon icon={faUsers} className="text-muted mb-3" size="3x" />
                   <p className="text-muted">
@@ -197,7 +205,7 @@ const Contacts = () => {
                             <Button
                               size="sm"
                               variant="outline-primary"
-                              onClick={() => handleToggleStatus(contact.id)}
+                              onClick={() => handleToggleStatus(contact.id, contact.is_active)}
                             >
                               {contact.is_active ? 'Deactivate' : 'Activate'}
                             </Button>

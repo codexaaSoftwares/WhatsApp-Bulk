@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Container, Row, Col, Card, Table, Button, Badge, Modal, Form, Alert } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -12,8 +12,9 @@ import {
   faEye,
 } from '@fortawesome/free-solid-svg-icons'
 import { useToast } from '../../components'
+import templateService from '../../services/templateService'
 
-// Mock data
+// Keep mock data for initial state
 const mockTemplates = [
   {
     id: 1,
@@ -21,6 +22,10 @@ const mockTemplates = [
     language: 'en',
     category: 'MARKETING',
     body: 'Hello {{name}}, welcome to our service!',
+    header_type: null,
+    header_content: null,
+    footer: null,
+    buttons: null,
     status: 'APPROVED',
     variables: ['name'],
     created_at: '2024-01-15T10:00:00Z',
@@ -31,6 +36,10 @@ const mockTemplates = [
     language: 'en',
     category: 'UTILITY',
     body: 'Your order #{{order_id}} has been confirmed.',
+    header_type: null,
+    header_content: null,
+    footer: null,
+    buttons: null,
     status: 'PENDING',
     variables: ['order_id'],
     created_at: '2024-01-14T10:00:00Z',
@@ -41,15 +50,53 @@ const mockTemplates = [
     language: 'en',
     category: 'AUTHENTICATION',
     body: 'Your OTP is {{otp}}. Valid for 5 minutes.',
+    header_type: null,
+    header_content: null,
+    footer: null,
+    buttons: null,
     status: 'DRAFT',
     variables: ['otp'],
     created_at: '2024-01-13T10:00:00Z',
+  },
+  {
+    id: 4,
+    name: 'Redmi Smartphone Mega Offer',
+    language: 'en',
+    category: 'MARKETING',
+    header_type: 'IMAGE',
+    header_content: 'https://rukminim2.flixcart.com/image/480/640/xif0q/mobile/i/g/x/note-14-5g-24094rad4i-mzb0i1pin-redmi-original-imahjpfhzeyawjw4.jpeg?q=90',
+    body: `✨ Limited Time Deal on Redmi Smartphones! ✨
+
+Upgrade your phone today with powerful performance + stylish design at an unbeatable price 💥
+
+✅ Latest Redmi Models Available
+✅ High Battery Backup 🔋
+✅ Fast Processor ⚡
+✅ Best Camera Quality 📸
+
+🎁 Special Offer Price – Today Only!
+💰 Easy EMI Available
+🎉 Free Gifts on Selected Models
+
+📍 Visit our shop or
+📞 Call / WhatsApp us now: 9XXXXXXXXX
+
+⏳ Hurry! Stock is limited`,
+    footer: '---------------------------',
+    buttons: [
+      { type: 'URL', text: 'Visit Shop', url: 'https://example.com/shop' },
+      { type: 'QUICK_REPLY', text: 'Interested' },
+    ],
+    status: 'APPROVED',
+    variables: [],
+    created_at: '2024-01-16T10:00:00Z',
   },
 ]
 
 const Templates = () => {
   const { success: showSuccess, error: showError } = useToast()
-  const [templates, setTemplates] = useState(mockTemplates)
+  const [templates, setTemplates] = useState([])
+  const [fetching, setFetching] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [previewTemplate, setPreviewTemplate] = useState(null)
@@ -58,9 +105,31 @@ const Templates = () => {
     name: '',
     language: 'en',
     category: 'MARKETING',
+    header_type: '',
+    header_content: '',
     body: '',
+    footer: '',
     variables: '',
+    status: 'DRAFT',
   })
+
+  useEffect(() => {
+    fetchTemplates()
+  }, [])
+
+  const fetchTemplates = async () => {
+    try {
+      setFetching(true)
+      const response = await templateService.getTemplates()
+      if (response.success) {
+        setTemplates(response.data.data || response.data || [])
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to fetch templates')
+    } finally {
+      setFetching(false)
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -71,25 +140,36 @@ const Templates = () => {
     e.preventDefault()
     setLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      const variables = formData.variables.split(',').map(v => v.trim()).filter(v => v)
-      const newTemplate = {
-        id: templates.length + 1,
+    try {
+      const variables = formData.variables 
+        ? formData.variables.split(',').map(v => v.trim()).filter(v => v)
+        : []
+      
+      const templateData = {
         name: formData.name,
         language: formData.language,
         category: formData.category,
+        header_type: formData.header_type || null,
+        header_content: formData.header_content || null,
         body: formData.body,
-        status: 'DRAFT',
+        footer: formData.footer || null,
+        buttons: null, // Can be added later
+        status: formData.status || 'DRAFT',
         variables: variables,
-        created_at: new Date().toISOString(),
       }
-      setTemplates([...templates, newTemplate])
-      setShowModal(false)
-      setFormData({ name: '', language: 'en', category: 'MARKETING', body: '', variables: '' })
-      showSuccess('Template created successfully')
+
+      const response = await templateService.createTemplate(templateData)
+      if (response.success) {
+        showSuccess('Template created successfully')
+        setShowModal(false)
+        setFormData({ name: '', language: 'en', category: 'MARKETING', header_type: '', header_content: '', body: '', footer: '', variables: '', status: 'DRAFT' })
+        fetchTemplates()
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to create template')
+    } finally {
       setLoading(false)
-    }, 1000)
+    }
   }
 
   const handlePreview = (template) => {
@@ -97,10 +177,29 @@ const Templates = () => {
     setShowPreview(true)
   }
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this template?')) {
-      setTemplates(templates.filter(template => template.id !== id))
-      showSuccess('Template deleted successfully')
+      try {
+        const response = await templateService.deleteTemplate(id)
+        if (response.success) {
+          showSuccess('Template deleted successfully')
+          fetchTemplates()
+        }
+      } catch (error) {
+        showError(error.response?.data?.message || 'Failed to delete template')
+      }
+    }
+  }
+
+  const handleApprove = async (id) => {
+    try {
+      const response = await templateService.approveTemplate(id)
+      if (response.success) {
+        showSuccess('Template approved successfully')
+        fetchTemplates()
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to approve template')
     }
   }
 
@@ -149,7 +248,12 @@ const Templates = () => {
               <h5 className="mb-0">Message Templates</h5>
             </Card.Header>
             <Card.Body>
-              {templates.length === 0 ? (
+              {fetching ? (
+                <div className="text-center py-5">
+                  <FontAwesomeIcon icon={faSpinner} spin className="text-primary mb-3" size="3x" />
+                  <p className="text-muted">Loading templates...</p>
+                </div>
+              ) : templates.length === 0 ? (
                 <div className="text-center py-5">
                   <FontAwesomeIcon icon={faFileAlt} className="text-muted mb-3" size="3x" />
                   <p className="text-muted">No templates created yet</p>
@@ -165,6 +269,7 @@ const Templates = () => {
                       <th>Category</th>
                       <th>Language</th>
                       <th>Body Preview</th>
+                      <th>Features</th>
                       <th>Variables</th>
                       <th>Status</th>
                       <th>Actions</th>
@@ -186,6 +291,28 @@ const Templates = () => {
                               ? template.body.substring(0, 50) + '...' 
                               : template.body}
                           </small>
+                        </td>
+                        <td>
+                          <div className="d-flex gap-1 flex-wrap">
+                            {template.header_type && (
+                              <Badge bg="outline-primary" className="small" title={`Header: ${template.header_type}`}>
+                                📷 {template.header_type}
+                              </Badge>
+                            )}
+                            {template.footer && (
+                              <Badge bg="outline-secondary" className="small" title="Has Footer">
+                                Footer
+                              </Badge>
+                            )}
+                            {template.buttons && template.buttons.length > 0 && (
+                              <Badge bg="outline-success" className="small" title={`${template.buttons.length} button(s)`}>
+                                🔘 {template.buttons.length}
+                              </Badge>
+                            )}
+                            {!template.header_type && !template.footer && (!template.buttons || template.buttons.length === 0) && (
+                              <span className="text-muted small">-</span>
+                            )}
+                          </div>
                         </td>
                         <td>
                           {template.variables && template.variables.length > 0 ? (
@@ -210,6 +337,16 @@ const Templates = () => {
                             >
                               <FontAwesomeIcon icon={faEye} />
                             </Button>
+                            {template.status === 'DRAFT' || template.status === 'PENDING' ? (
+                              <Button
+                                size="sm"
+                                variant="outline-success"
+                                onClick={() => handleApprove(template.id)}
+                                title="Approve Template"
+                              >
+                                <FontAwesomeIcon icon={faCheckCircle} />
+                              </Button>
+                            ) : null}
                             <Button
                               size="sm"
                               variant="outline-danger"
@@ -284,20 +421,77 @@ const Templates = () => {
                 </Form.Group>
               </Col>
 
+              <Col md={6} className="mb-3">
+                <Form.Group>
+                  <Form.Label>Header Type</Form.Label>
+                  <Form.Select
+                    name="header_type"
+                    value={formData.header_type}
+                    onChange={handleChange}
+                  >
+                    <option value="">None</option>
+                    <option value="TEXT">Text</option>
+                    <option value="IMAGE">Image</option>
+                    <option value="VIDEO">Video</option>
+                    <option value="DOCUMENT">Document</option>
+                  </Form.Select>
+                  <Form.Text className="text-muted">
+                    Optional header for your template
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+
+              {formData.header_type && (
+                <Col md={6} className="mb-3">
+                  <Form.Group>
+                    <Form.Label>
+                      Header Content {formData.header_type === 'TEXT' ? '(Text)' : '(URL)'}
+                    </Form.Label>
+                    <Form.Control
+                      type={formData.header_type === 'TEXT' ? 'text' : 'url'}
+                      name="header_content"
+                      value={formData.header_content}
+                      onChange={handleChange}
+                      placeholder={
+                        formData.header_type === 'TEXT'
+                          ? 'Enter header text'
+                          : 'Enter image/video/document URL'
+                      }
+                    />
+                  </Form.Group>
+                </Col>
+              )}
+
               <Col md={12} className="mb-3">
                 <Form.Group>
                   <Form.Label>Message Body <span className="text-danger">*</span></Form.Label>
                   <Form.Control
                     as="textarea"
-                    rows={5}
+                    rows={8}
                     name="body"
                     value={formData.body}
                     onChange={handleChange}
                     required
-                    placeholder="Enter message body. Use {{variable_name}} for variables."
+                    placeholder="Enter message body. Use {{variable_name}} for variables. Emojis are supported."
                   />
                   <Form.Text className="text-muted">
-                    Use double curly braces for variables, e.g., {'{{name}}'}, {'{{order_id}}'}
+                    Use double curly braces for variables, e.g., {'{{name}}'}, {'{{order_id}}'}. You can use emojis and formatting.
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+
+              <Col md={12} className="mb-3">
+                <Form.Group>
+                  <Form.Label>Footer (Optional)</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="footer"
+                    value={formData.footer}
+                    onChange={handleChange}
+                    placeholder="Enter footer text (e.g., separator line, contact info)"
+                  />
+                  <Form.Text className="text-muted">
+                    Footer text appears at the bottom of the message
                   </Form.Text>
                 </Form.Group>
               </Col>
@@ -350,10 +544,67 @@ const Templates = () => {
               <p><strong>Language:</strong> {previewTemplate.language.toUpperCase()}</p>
               <p><strong>Status:</strong> {getStatusBadge(previewTemplate.status)}</p>
               <hr />
+              
+              {/* Header Preview */}
+              {previewTemplate.header_type && (
+                <>
+                  <p><strong>Header ({previewTemplate.header_type}):</strong></p>
+                  {previewTemplate.header_type === 'IMAGE' || previewTemplate.header_type === 'VIDEO' ? (
+                    <div className="mb-3">
+                      <img
+                        src={previewTemplate.header_content || 'https://via.placeholder.com/400x200?text=Header+Image'}
+                        alt="Header"
+                        className="img-fluid rounded"
+                        style={{ maxHeight: '200px' }}
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/400x200?text=Image+Not+Available'
+                        }}
+                      />
+                      <small className="text-muted d-block mt-1">{previewTemplate.header_content}</small>
+                    </div>
+                  ) : previewTemplate.header_type === 'TEXT' ? (
+                    <div className="p-2 bg-light rounded mb-3">
+                      {previewTemplate.header_content}
+                    </div>
+                  ) : (
+                    <div className="p-2 bg-light rounded mb-3">
+                      <small>Document: {previewTemplate.header_content}</small>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Body Preview */}
               <p><strong>Body:</strong></p>
-              <div className="p-3 bg-light rounded">
+              <div className="p-3 bg-light rounded mb-3" style={{ whiteSpace: 'pre-wrap' }}>
                 {previewTemplate.body}
               </div>
+
+              {/* Footer Preview */}
+              {previewTemplate.footer && (
+                <>
+                  <p><strong>Footer:</strong></p>
+                  <div className="p-2 bg-light rounded mb-3">
+                    {previewTemplate.footer}
+                  </div>
+                </>
+              )}
+
+              {/* Buttons Preview */}
+              {previewTemplate.buttons && previewTemplate.buttons.length > 0 && (
+                <>
+                  <p><strong>Buttons:</strong></p>
+                  <div className="d-flex gap-2 flex-wrap mb-3">
+                    {previewTemplate.buttons.map((button, idx) => (
+                      <Badge key={idx} bg="secondary">
+                        {button.type}: {button.text}
+                      </Badge>
+                    ))}
+                  </div>
+                </>
+              )}
+
+              {/* Variables */}
               {previewTemplate.variables && previewTemplate.variables.length > 0 && (
                 <>
                   <p className="mt-3"><strong>Variables:</strong></p>

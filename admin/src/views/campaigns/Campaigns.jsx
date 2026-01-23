@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Container, Row, Col, Card, Table, Button, Badge, Modal, Form, ProgressBar } from 'react-bootstrap'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -11,6 +11,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import { useToast } from '../../components'
+import campaignService from '../../services/campaignService'
 
 // Mock data
 const mockCampaigns = [
@@ -67,24 +68,46 @@ const mockCampaigns = [
 const Campaigns = () => {
   const navigate = useNavigate()
   const { success: showSuccess, error: showError } = useToast()
-  const [campaigns, setCampaigns] = useState(mockCampaigns)
-  const [showModal, setShowModal] = useState(false)
-  const [loading, setLoading] = useState(false)
+  const [campaigns, setCampaigns] = useState([])
+  const [fetching, setFetching] = useState(true)
+  const [starting, setStarting] = useState(null)
 
-  const handleStart = (id) => {
-    setCampaigns(campaigns.map(campaign => 
-      campaign.id === id 
-        ? { ...campaign, status: 'PROCESSING', started_at: new Date().toISOString() }
-        : campaign
-    ))
-    showSuccess('Campaign started successfully')
+  useEffect(() => {
+    fetchCampaigns()
+  }, [])
+
+  const fetchCampaigns = async () => {
+    try {
+      setFetching(true)
+      const response = await campaignService.getCampaigns()
+      if (response.success) {
+        setCampaigns(response.data.data || response.data || [])
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to fetch campaigns')
+    } finally {
+      setFetching(false)
+    }
+  }
+
+  const handleStart = async (id) => {
+    setStarting(id)
+    try {
+      const response = await campaignService.startCampaign(id)
+      if (response.success) {
+        showSuccess('Campaign started successfully')
+        fetchCampaigns()
+      }
+    } catch (error) {
+      showError(error.response?.data?.message || 'Failed to start campaign')
+    } finally {
+      setStarting(null)
+    }
   }
 
   const handleStop = (id) => {
-    setCampaigns(campaigns.map(campaign => 
-      campaign.id === id ? { ...campaign, status: 'COMPLETED' } : campaign
-    ))
-    showSuccess('Campaign stopped')
+    // Stop functionality can be added later if needed
+    showError('Stop functionality not yet implemented')
   }
 
   const getStatusBadge = (status) => {
@@ -114,7 +137,7 @@ const Campaigns = () => {
           </h2>
           <p className="text-muted mb-0">Manage your WhatsApp messaging campaigns</p>
         </div>
-        <Button variant="primary" onClick={() => navigate('/compose')}>
+        <Button variant="primary" onClick={() => navigate('/campaigns/create')}>
           <FontAwesomeIcon icon={faPlus} className="me-2" />
           Create Campaign
         </Button>
@@ -127,11 +150,16 @@ const Campaigns = () => {
               <h5 className="mb-0">All Campaigns</h5>
             </Card.Header>
             <Card.Body>
-              {campaigns.length === 0 ? (
+              {fetching ? (
+                <div className="text-center py-5">
+                  <FontAwesomeIcon icon={faSpinner} spin className="text-primary mb-3" size="3x" />
+                  <p className="text-muted">Loading campaigns...</p>
+                </div>
+              ) : campaigns.length === 0 ? (
                 <div className="text-center py-5">
                   <FontAwesomeIcon icon={faBullhorn} className="text-muted mb-3" size="3x" />
                   <p className="text-muted">No campaigns created yet</p>
-                  <Button variant="primary" onClick={() => navigate('/compose')}>
+                  <Button variant="primary" onClick={() => navigate('/campaigns/create')}>
                     Create Your First Campaign
                   </Button>
                 </div>
@@ -206,8 +234,14 @@ const Campaigns = () => {
                                 size="sm"
                                 variant="success"
                                 onClick={() => handleStart(campaign.id)}
+                                disabled={starting === campaign.id}
+                                title="Start Campaign"
                               >
-                                <FontAwesomeIcon icon={faPlay} />
+                                {starting === campaign.id ? (
+                                  <FontAwesomeIcon icon={faSpinner} spin />
+                                ) : (
+                                  <FontAwesomeIcon icon={faPlay} />
+                                )}
                               </Button>
                             )}
                             {campaign.status === 'PROCESSING' && (

@@ -9,9 +9,10 @@ const routesConfig = [
   { path: '/contacts', name: 'Contacts' },
   { path: '/templates', name: 'Templates' },
   { path: '/campaigns', name: 'Campaigns' },
+  { path: '/campaigns/create', name: 'Create Campaign' },
   { path: '/campaigns/:id', name: 'Campaign Details' },
   { path: '/message-logs', name: 'Message Logs' },
-  { path: '/compose', name: 'Compose Message' },
+  { path: '/compose', name: 'Create Campaign' },
   
   // User Management Routes
   { path: '/users', name: 'Users' },

@@ -22,6 +22,7 @@ class MessageLog extends Model
         'wa_message_id',
         'mobile_number',
         'message_content',
+        'variable_values',
         'status',
         'error_message',
         'sent_at',
@@ -37,6 +38,7 @@ class MessageLog extends Model
      * @var array<string, string>
      */
     protected $casts = [
+        'variable_values' => 'array',
         'sent_at' => 'datetime',
         'delivered_at' => 'datetime',
         'read_at' => 'datetime',

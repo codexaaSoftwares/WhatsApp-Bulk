@@ -11,6 +11,8 @@ const WhatsAppNumbers = React.lazy(() => import('../../views/whatsappNumbers/Wha
 const Contacts = React.lazy(() => import('../../views/contacts/Contacts'))
 const Templates = React.lazy(() => import('../../views/templates/Templates'))
 const Campaigns = React.lazy(() => import('../../views/campaigns/Campaigns'))
+const CreateCampaign = React.lazy(() => import('../../views/campaigns/CreateCampaign'))
+const ViewCampaign = React.lazy(() => import('../../views/campaigns/ViewCampaign'))
 const MessageLogs = React.lazy(() => import('../../views/messageLogs/MessageLogs'))
 
 // User Management Components
@@ -45,9 +47,10 @@ const AppContent = () => {
           <Route path="/contacts" element={<Contacts />} />
           <Route path="/templates" element={<Templates />} />
           <Route path="/campaigns" element={<Campaigns />} />
-          <Route path="/campaigns/:id" element={<Campaigns />} />
+          <Route path="/campaigns/create" element={<CreateCampaign />} />
+          <Route path="/campaigns/:id" element={<ViewCampaign />} />
           <Route path="/message-logs" element={<MessageLogs />} />
-          <Route path="/compose" element={<Campaigns />} />
+          <Route path="/compose" element={<CreateCampaign />} />
           
           {/* User Management Routes */}
           <Route

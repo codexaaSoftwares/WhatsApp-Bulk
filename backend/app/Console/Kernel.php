@@ -15,7 +15,15 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule)
     {
-        // $schedule->command('inspire')->hourly();
+        // Process queued jobs every minute
+        // This is cron-friendly for shared hosting like Hostinger
+        $schedule->command('queue:work --stop-when-empty --tries=3')
+            ->everyMinute()
+            ->withoutOverlapping()
+            ->runInBackground();
+
+        // Optional: Clean up old failed jobs (weekly)
+        $schedule->command('queue:prune-failed --hours=168')->weekly();
     }
 
     /**
